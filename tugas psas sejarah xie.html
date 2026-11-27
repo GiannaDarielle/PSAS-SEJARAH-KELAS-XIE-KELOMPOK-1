@@ -1,0 +1,1466 @@
+<!DOCTYPE html>
+<html lang="id">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Runtuhnya Kekuasaan Belanda di Nusantara (1942) — Tugas PSAS Kelompok 1</title>
+    
+    <!-- Tailwind CSS -->
+    <script src="https://cdn.tailwindcss.com"></script>
+    
+    <!-- Google Fonts: Cinzel, IM Fell English & Source Serif 4 -->
+    <link rel="preconnect" href="https://fonts.googleapis.com">
+    <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+    <link href="https://fonts.googleapis.com/css2?family=Cinzel:wght@600;700;800&family=IM+Fell+English:ital@0;1&family=Source+Serif+4:ital,opsz,wght@0,8..60,400;0,8..60,500;0,8..60,600;0,8..60,700;1,8..60,400&display=swap" rel="stylesheet">
+    
+    <!-- Leaflet CSS & JS -->
+    <link rel="stylesheet" href="https://unpkg.com/leaflet@1.9.4/dist/leaflet.css" integrity="sha256-p4NxAoJBhIIN+hmNHrzRCf9tD/miZyoHS5obTRR9BMY=" crossorigin="" />
+    <script src="https://unpkg.com/leaflet@1.9.4/dist/leaflet.js" integrity="sha256-20nQCchB9co0qIjJZRGuk2/Z9VM+kNiyxNV1lvTlZBo=" crossorigin=""></script>
+
+    <style>
+        :root {
+            --parchment-bg: #F6F1E7;
+            --parchment-card: #FCF9F2;
+            --parchment-border: #D4C4A8;
+            --ink-primary: #261C14;
+            --ink-muted: #5A4A3A;
+            --maroon-accent: #8B2635;
+            --navy-accent: #1B365D;
+            --gold-accent: #B8860B;
+            --gold-bright: #C59B27;
+        }
+
+        html {
+            scroll-behavior: smooth;
+        }
+
+        body {
+            background-color: var(--parchment-bg);
+            color: var(--ink-primary);
+            font-family: 'Source Serif 4', Georgia, serif;
+            overflow-x: hidden;
+        }
+
+        .font-cinzel {
+            font-family: 'Cinzel', Georgia, serif;
+        }
+
+        .font-display-classic {
+            font-family: 'IM Fell English', Georgia, serif;
+        }
+
+        .font-body-classic {
+            font-family: 'Source Serif 4', Georgia, serif;
+        }
+
+        /* Tekstur kertas perkamen berlapis */
+        .parchment-texture {
+            background-color: var(--parchment-bg);
+            background-image: 
+                radial-gradient(rgba(184, 134, 11, 0.05) 1px, transparent 0),
+                radial-gradient(rgba(139, 38, 53, 0.03) 1px, transparent 0),
+                linear-gradient(to bottom, rgba(255,255,255,0.35), rgba(226, 214, 193, 0.25));
+            background-size: 28px 28px, 42px 42px, 100% 100%;
+            background-position: 0 0, 14px 14px, 0 0;
+        }
+
+        /* Filter Kartografi Indonesia Asli & Jernih */
+        .indonesia-vintage-tiles {
+            filter: none;
+        }
+
+        /* Vignette halus di tepi peta */
+        .map-vignette {
+            box-shadow: inset 0 0 36px rgba(38, 28, 20, 0.16), inset 0 0 0 2px rgba(184, 134, 11, 0.35);
+            pointer-events: none;
+        }
+
+        /* Scrollbar Klasik */
+        ::-webkit-scrollbar {
+            width: 8px;
+            height: 8px;
+        }
+        ::-webkit-scrollbar-track {
+            background: #EAE1D0;
+        }
+        ::-webkit-scrollbar-thumb {
+            background: #B59F7E;
+            border-radius: 4px;
+            border: 1px solid #EAE1D0;
+        }
+        ::-webkit-scrollbar-thumb:hover {
+            background: #8B2635;
+        }
+
+        /* Label Nama Pulau-Pulau Besar Indonesia di Peta */
+        .island-map-label {
+            font-family: 'Cinzel', serif;
+            font-weight: 700;
+            font-size: 11px;
+            letter-spacing: 0.24em;
+            color: rgba(43, 33, 24, 0.62);
+            text-shadow: 0 1px 2px rgba(252, 249, 242, 0.95), 0 0 6px rgba(252, 249, 242, 0.9);
+            white-space: nowrap;
+            pointer-events: none;
+            text-transform: uppercase;
+        }
+
+        /* Marker Stempel / Medali Klasik Bernomor */
+        @keyframes pulseRing {
+            0% { transform: scale(0.95); opacity: 0.85; }
+            70% { transform: scale(1.45); opacity: 0; }
+            100% { transform: scale(1.45); opacity: 0; }
+        }
+
+        .medal-marker-wrapper {
+            position: relative;
+            width: 44px;
+            height: 44px;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            cursor: pointer;
+        }
+
+        .medal-pulse {
+            position: absolute;
+            width: 40px;
+            height: 40px;
+            border-radius: 50%;
+            background: rgba(139, 38, 53, 0.45);
+            animation: pulseRing 2s infinite ease-out;
+            display: none;
+        }
+
+        .medal-marker-wrapper.active .medal-pulse {
+            display: block;
+        }
+
+        .medal-core {
+            position: relative;
+            width: 34px;
+            height: 34px;
+            border-radius: 50%;
+            background: linear-gradient(145deg, #244675, #1B365D);
+            color: #FCF9F2;
+            font-family: 'Cinzel', serif;
+            font-size: 14px;
+            font-weight: 700;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            border: 2px solid #C59B27;
+            box-shadow: 0 0 0 2px #FCF9F2, 0 4px 12px rgba(0, 0, 0, 0.45);
+            transition: all 0.35s cubic-bezier(0.22, 1, 0.36, 1);
+            z-index: 2;
+        }
+
+        .medal-marker-wrapper:hover .medal-core {
+            transform: scale(1.15);
+            background: linear-gradient(145deg, #A32E40, #8B2635);
+        }
+
+        .medal-marker-wrapper.active .medal-core {
+            width: 42px;
+            height: 42px;
+            font-size: 17px;
+            background: linear-gradient(145deg, #A32E40, #8B2635);
+            border: 2.5px solid #F6E299;
+            box-shadow: 0 0 0 3px #FCF9F2, 0 6px 18px rgba(139, 38, 53, 0.55);
+        }
+
+        /* Kartu Cerita Aktif vs Non-aktif */
+        .story-card {
+            background-color: var(--parchment-card);
+            border: 1.5px solid var(--parchment-border);
+            box-shadow: 0 4px 20px rgba(38, 28, 20, 0.06);
+            transition: all 0.45s ease;
+            opacity: 0.72;
+            transform: translateY(4px);
+            position: relative;
+        }
+
+        .story-card.is-active {
+            opacity: 1;
+            transform: translateY(0);
+            border-color: #B8860B;
+            box-shadow: 0 12px 32px rgba(139, 38, 53, 0.13), inset 0 0 0 1px rgba(184, 134, 11, 0.3);
+        }
+
+        /* Bingkai Potret Tokoh Sejarah */
+        .portrait-frame {
+            border: 2px solid #B8860B;
+            box-shadow: inset 0 0 0 2px #FCF9F2, 0 4px 12px rgba(38, 28, 20, 0.22);
+            background: #2B241D;
+        }
+
+        .portrait-img {
+            filter: contrast(1.06) brightness(1.02);
+            transition: transform 0.4s ease;
+        }
+
+        .figure-card:hover .portrait-img {
+            transform: scale(1.04);
+        }
+
+        /* Kustomisasi Popup Leaflet */
+        .leaflet-popup-content-wrapper {
+            background-color: #FCF9F2;
+            color: #261C14;
+            border: 1.5px solid #B8860B;
+            border-radius: 6px;
+            font-family: 'Source Serif 4', serif;
+            box-shadow: 0 8px 24px rgba(38, 28, 20, 0.28);
+        }
+        .leaflet-popup-tip {
+            background-color: #FCF9F2;
+            border: 1px solid #B8860B;
+        }
+    </style>
+</head>
+<body class="parchment-texture antialiased selection:bg-[#8B2635] selection:text-[#FCF9F2]">
+
+    <!-- ===================================================================== -->
+    <!-- LAYAR PEMBUKA (HERO COVER OVERLAY) ARSIP SEJARAH 1942                -->
+    <!-- ===================================================================== -->
+    <section id="hero-cover" class="fixed inset-0 z-50 flex items-center justify-center p-4 sm:p-6 bg-[#1C140E]/92 backdrop-blur-md transition-all duration-700 overflow-y-auto">
+        <div class="relative w-full max-w-4xl bg-[#F6F1E7] parchment-texture border-2 border-[#B8860B] rounded-xl shadow-[0_20px_60px_rgba(0,0,0,0.75)] p-6 sm:p-10 md:p-12 text-center my-auto">
+            
+            <!-- Ornamen Sudut Emas Antik -->
+            <div class="absolute top-3 left-3 w-8 h-8 border-t-2 border-l-2 border-[#8B2635]"></div>
+            <div class="absolute top-3 right-3 w-8 h-8 border-t-2 border-r-2 border-[#8B2635]"></div>
+            <div class="absolute bottom-3 left-3 w-8 h-8 border-b-2 border-l-2 border-[#8B2635]"></div>
+            <div class="absolute bottom-3 right-3 w-8 h-8 border-b-2 border-r-2 border-[#8B2635]"></div>
+
+            <!-- Banner Identitas Tugas PSAS Kelompok 1 -->
+            <div class="inline-block mb-5 px-4 sm:px-6 py-2 rounded-md bg-gradient-to-r from-[#8B2635] via-[#751E2B] to-[#8B2635] border-2 border-[#C59B27] shadow-md">
+                <p class="font-cinzel text-xs sm:text-sm md:text-base font-bold tracking-wider text-[#FCF9F2]">
+                    PROJEK PSAS KELOMPOK 1 : Aloycia, Bennedick, Gianna, Fina, William
+                </p>
+            </div>
+
+            <!-- Sub-label Kartografi -->
+            <div class="flex items-center justify-center gap-3 text-xs uppercase tracking-[0.22em] text-[#1B365D] font-bold mb-2">
+                <span class="h-[1px] w-8 bg-[#B8860B]"></span>
+                <span>Peta Cerita Interaktif Sejarah Indonesia</span>
+                <span class="h-[1px] w-8 bg-[#B8860B]"></span>
+            </div>
+
+            <!-- Judul Utama -->
+            <h1 class="font-display-classic text-3xl sm:text-5xl md:text-[54px] text-[#261C14] leading-[1.12] mt-1">
+                Runtuhnya Kekuasaan Belanda di Nusantara (1942)
+            </h1>
+
+            <p class="mt-4 max-w-2xl mx-auto text-sm sm:text-base md:text-lg text-[#5A4A3A] leading-relaxed italic">
+                Penelusuran kronologis ekspansi Kekaisaran Jepang dari ladang minyak Kalimantan dan Sumatera, kehancuran armada Sekutu di Laut Jawa, hingga Kapitulasi Kalijati yang mengakhiri tiga abad kolonialisme Hindia Belanda.
+            </p>
+
+            <!-- Statistik Singkat -->
+            <div class="mt-6 grid grid-cols-1 sm:grid-cols-3 gap-3 max-w-2xl mx-auto text-left">
+                <div class="bg-[#FCF9F2] border border-[#D4C4A8] rounded-lg p-3 shadow-sm">
+                    <span class="text-[11px] uppercase tracking-wider text-[#8B2635] font-bold block">Rentang Waktu</span>
+                    <span class="font-cinzel text-base font-bold text-[#261C14]">Jan – Mar 1942</span>
+                    <span class="text-xs text-[#5A4A3A] block mt-0.5">57 hari operasi militer Jepang</span>
+                </div>
+                <div class="bg-[#FCF9F2] border border-[#D4C4A8] rounded-lg p-3 shadow-sm">
+                    <span class="text-[11px] uppercase tracking-wider text-[#1B365D] font-bold block">Peta Indonesia Asli</span>
+                    <span class="font-cinzel text-base font-bold text-[#261C14]">Sabang – Merauke</span>
+                    <span class="text-xs text-[#5A4A3A] block mt-0.5">Pilihan Atlas, Relief & Satelit</span>
+                </div>
+                <div class="bg-[#FCF9F2] border border-[#D4C4A8] rounded-lg p-3 shadow-sm">
+                    <span class="text-[11px] uppercase tracking-wider text-[#B8860B] font-bold block">Arsip Foto Asli</span>
+                    <span class="font-cinzel text-base font-bold text-[#261C14]">Tokoh Sejarah</span>
+                    <span class="text-xs text-[#5A4A3A] block mt-0.5">Potret arsip Wikimedia Commons</span>
+                </div>
+            </div>
+
+            <!-- Tombol Mulai -->
+            <div class="mt-8 flex flex-col sm:flex-row items-center justify-center gap-3">
+                <button id="btn-start-story" type="button"
+                    class="w-full sm:w-auto inline-flex items-center justify-center gap-2.5 px-7 py-3.5 rounded-lg bg-gradient-to-b from-[#9E2B3C] to-[#7B1F2D] hover:from-[#1B365D] hover:to-[#132744] text-[#FCF9F2] font-cinzel text-sm sm:text-base font-bold tracking-wider border-2 border-[#C59B27] shadow-lg hover:shadow-xl transition-all duration-300 cursor-pointer">
+                    <span>Mulai Jelajahi Sejarah</span>
+                    <svg class="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                        <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M14 5l7 7m0 0l-7 7m7-7H3"/>
+                    </svg>
+                </button>
+            </div>
+        </div>
+    </section>
+
+    <!-- ===================================================================== -->
+    <!-- BANNER IDENTITAS TETAP DI PALING ATAS HALAMAN                         -->
+    <!-- ===================================================================== -->
+    <div class="w-full bg-gradient-to-r from-[#261C14] via-[#8B2635] to-[#261C14] border-b-2 border-[#C59B27] px-3 py-2 text-center z-40 relative shadow-md">
+        <div class="max-w-7xl mx-auto flex flex-wrap items-center justify-center gap-2">
+            <span class="inline-block w-2 h-2 rotate-45 bg-[#C59B27]"></span>
+            <p class="font-cinzel text-[11px] sm:text-xs md:text-sm font-bold tracking-wider text-[#FCF9F2]">
+                PROJEK PSAS KELOMPOK 1 : Aloycia, Bennedick, Gianna, Fina, William
+            </p>
+            <span class="inline-block w-2 h-2 rotate-45 bg-[#C59B27]"></span>
+        </div>
+    </div>
+
+    <!-- ===================================================================== -->
+    <!-- LAYOUT UTAMA SPLIT-SCREEN RESPONSIF                                   -->
+    <!-- ===================================================================== -->
+    <div class="flex flex-col lg:flex-row min-h-screen w-full">
+
+        <!-- PANEL KIRI: Peta Geografis Kepulauan Indonesia (Sticky) -->
+        <aside class="w-full lg:w-[53%] h-[45vh] sm:h-[50vh] lg:h-screen sticky top-0 z-30 border-b-2 lg:border-b-0 lg:border-r-2 border-[#B8860B] bg-[#DFD6C3] flex-shrink-0">
+            
+            <div id="map" class="w-full h-full z-10"></div>
+            <div class="map-vignette absolute inset-0 z-20"></div>
+
+            <!-- Kompas Mawar -->
+            <div class="hidden sm:block absolute bottom-9 left-4 z-20 pointer-events-none opacity-85 drop-shadow">
+                <svg width="78" height="78" viewBox="0 0 100 100" fill="none" xmlns="http://www.w3.org/2000/svg">
+                    <circle cx="50" cy="50" r="44" stroke="#261C14" stroke-width="1.2" stroke-dasharray="3 2"/>
+                    <circle cx="50" cy="50" r="36" stroke="#B8860B" stroke-width="1"/>
+                    <polygon points="50,6 56,44 94,50 56,56 50,94 44,56 6,50 44,44" fill="#FCF9F2" stroke="#261C14" stroke-width="1.2"/>
+                    <polygon points="50,6 56,44 50,50" fill="#8B2635"/>
+                    <polygon points="94,50 56,56 50,50" fill="#1B365D"/>
+                    <polygon points="50,94 44,56 50,50" fill="#8B2635"/>
+                    <polygon points="6,50 44,44 50,50" fill="#1B365D"/>
+                    <circle cx="50" cy="50" r="4" fill="#C59B27" stroke="#261C14" stroke-width="1.3"/>
+                    <text x="46" y="4" font-family="Cinzel" font-size="9" fill="#8B2635" font-weight="bold">U</text>
+                </svg>
+            </div>
+
+            <!-- Info Mini Peta -->
+            <div class="absolute top-3 left-3 sm:top-4 sm:left-4 z-20 bg-[#FCF9F2]/95 backdrop-blur-sm border-2 border-[#B8860B] rounded-lg px-3.5 py-2.5 shadow-lg max-w-[260px] sm:max-w-xs">
+                <div class="flex items-center justify-between gap-2">
+                    <div class="flex items-center gap-1.5">
+                        <span class="inline-block w-2.5 h-2.5 rounded-full bg-[#8B2635] animate-pulse"></span>
+                        <span id="map-badge-chapter" class="text-[10px] sm:text-[11px] uppercase tracking-widest font-bold text-[#8B2635]">Peta Indonesia</span>
+                    </div>
+                    <span id="map-badge-island" class="text-[10px] font-cinzel font-bold px-1.5 py-0.5 rounded bg-[#1B365D] text-[#FCF9F2]">Nusantara</span>
+                </div>
+                <p id="map-badge-location" class="font-display-classic text-sm sm:text-base text-[#261C14] leading-tight mt-1">Kepulauan Hindia Belanda (Sabang – Merauke)</p>
+                <p id="map-badge-coords" class="text-[11px] text-[#5A4A3A] font-mono mt-0.5">2.4000° LS, 117.8000° BT</p>
+            </div>
+
+            <!-- Tombol Kontrol Peta -->
+            <div class="absolute top-3 right-3 sm:top-4 sm:right-4 z-20 flex flex-col items-end gap-2">
+                <button id="btn-reset-map" type="button" title="Tampilkan Seluruh Kepulauan Indonesia dari Sabang sampai Merauke"
+                    class="flex items-center gap-1.5 bg-[#1B365D] hover:bg-[#8B2635] text-[#FCF9F2] text-xs sm:text-sm font-cinzel font-semibold px-3.5 py-2 rounded-lg border border-[#C59B27] shadow-lg transition-colors duration-200 cursor-pointer">
+                    <svg class="w-4 h-4 text-[#F6E299]" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                        <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M3.055 11H5a2 2 0 012 2v1a2 2 0 002 2 2 2 0 012 2v2.945M8 3.935V5.5A2.5 2.5 0 0010.5 8h.5a2 2 0 012 2 2 2 0 104 0 2 2 0 012-2h1.064M15 20.488V18a2 2 0 012-2h3.064M21 12a9 9 0 11-18 0 9 9 0 0118 0z"/>
+                    </svg>
+                    <span>Lihat Seluruh Peta Indonesia</span>
+                </button>
+
+                <!-- Switcher Gaya Peta Indonesia Asli -->
+                <div class="bg-[#FCF9F2]/95 backdrop-blur-sm border border-[#B8860B] rounded-lg p-1 shadow-lg flex flex-wrap gap-1" role="group" aria-label="Pilih Tampilan Peta Indonesia Asli">
+                    <button type="button" data-map-style="atlas"
+                        class="map-style-btn active px-2.5 py-1 rounded text-[11px] font-cinzel font-bold bg-[#8B2635] text-[#FCF9F2] transition-colors cursor-pointer">
+                        Peta Atlas Negara
+                    </button>
+                    <button type="button" data-map-style="relief"
+                        class="map-style-btn px-2.5 py-1 rounded text-[11px] font-cinzel font-bold text-[#261C14] hover:bg-[#EAE0CE] transition-colors cursor-pointer">
+                        Peta Fisik Asli (Relief)
+                    </button>
+                    <button type="button" data-map-style="satellite"
+                        class="map-style-btn px-2.5 py-1 rounded text-[11px] font-cinzel font-bold text-[#261C14] hover:bg-[#EAE0CE] transition-colors cursor-pointer">
+                        Citra Satelit Indonesia
+                    </button>
+                </div>
+            </div>
+
+            <!-- Legenda -->
+            <div class="hidden sm:flex flex-wrap items-center gap-3 absolute bottom-6 right-3 z-20 bg-[#FCF9F2]/95 border border-[#B8860B] rounded-lg px-3 py-1.5 text-[11px] text-[#261C14] shadow-md">
+                <div class="flex items-center gap-1.5">
+                    <span class="w-5 border-t-2 border-dashed border-[#8B2635]"></span>
+                    <span class="font-medium">Rute Invasi Jepang</span>
+                </div>
+                <div class="flex items-center gap-1.5">
+                    <span class="w-5 border-t-2 border-dotted border-[#1B365D]"></span>
+                    <span class="font-medium">Poros Pertahanan Sekutu</span>
+                </div>
+                <div class="flex items-center gap-1.5">
+                    <span class="w-3 h-3 rounded-full bg-[#8B2635] border border-[#C59B27] inline-block"></span>
+                    <span class="font-medium">Lokasi Bab Aktif</span>
+                </div>
+            </div>
+        </aside>
+
+        <!-- PANEL KANAN: Narasi Bergulir, Galeri Tokoh & Kronologi -->
+        <main class="w-full lg:w-[47%] flex flex-col justify-between relative">
+            
+            <!-- Header Navigasi & Timeline -->
+            <header class="sticky top-[45vh] sm:top-[50vh] lg:top-0 z-20 bg-[#F6F1E7]/95 backdrop-blur-md border-b-2 border-[#D4C4A8] px-4 sm:px-8 py-3 shadow-sm">
+                <div class="flex items-center justify-between gap-2">
+                    <div>
+                        <span class="text-[10px] sm:text-[11px] uppercase tracking-[0.18em] text-[#8B2635] font-bold block">Arsip Kartografi Sejarah • 1941–1942</span>
+                        <div class="flex items-center gap-2 mt-0.5">
+                            <span id="nav-progress-label" class="font-cinzel text-xs sm:text-sm font-bold text-[#1B365D]">Bab 1 dari 6</span>
+                            <span class="text-[#B8860B]">•</span>
+                            <span id="nav-chapter-short" class="text-xs sm:text-sm font-semibold text-[#5A4A3A] truncate max-w-[140px] sm:max-w-[220px]">Pendahuluan</span>
+                        </div>
+                    </div>
+
+                    <div class="flex items-center gap-2">
+                        <button id="btn-prev" type="button" aria-label="Bab Sebelumnya"
+                            class="px-3 py-1.5 rounded-md border border-[#B8860B] bg-[#FCF9F2] hover:bg-[#1B365D] hover:text-[#FCF9F2] hover:border-[#1B365D] disabled:opacity-40 disabled:pointer-events-none text-xs sm:text-sm font-semibold text-[#261C14] transition-colors flex items-center gap-1 cursor-pointer">
+                            <span>←</span>
+                            <span class="hidden sm:inline">Sebelumnya</span>
+                        </button>
+                        <button id="btn-next" type="button" aria-label="Bab Berikutnya"
+                            class="px-3 py-1.5 rounded-md border border-[#C59B27] bg-[#8B2635] hover:bg-[#6E1C28] disabled:opacity-40 disabled:pointer-events-none text-xs sm:text-sm font-semibold text-[#FCF9F2] transition-colors flex items-center gap-1 cursor-pointer shadow-sm">
+                            <span class="hidden sm:inline">Berikutnya</span>
+                            <span>→</span>
+                        </button>
+                    </div>
+                </div>
+
+                <!-- Timeline -->
+                <div id="chapter-timeline-nav" class="grid grid-cols-6 gap-1.5 mt-2.5" role="tablist" aria-label="Timeline Navigasi Bab"></div>
+            </header>
+
+            <!-- Tajuk Utama Panel Narasi -->
+            <div class="px-5 sm:px-10 pt-7 pb-6 border-b border-[#D4C4A8]">
+                <div class="flex flex-wrap items-center justify-between gap-2 mb-3">
+                    <span class="inline-flex items-center gap-1.5 px-3 py-1 rounded-md bg-[#1B365D] text-[#FCF9F2] text-[11px] font-cinzel font-semibold tracking-wider uppercase">
+                        <span>Kronik Perang Pasifik di Hindia Belanda</span>
+                    </span>
+                    <button id="btn-open-cover" type="button" class="text-xs text-[#8B2635] hover:underline font-semibold cursor-pointer">
+                        ✦ Lihat Sampul Judul
+                    </button>
+                </div>
+
+                <h2 class="font-display-classic text-3xl sm:text-4xl lg:text-[40px] text-[#261C14] leading-[1.15] tracking-tight">
+                    Runtuhnya Kekuasaan Belanda di Nusantara (1942)
+                </h2>
+                <p class="mt-3 text-base sm:text-lg text-[#5A4A3A] leading-relaxed italic">
+                    Dari jatuhnya ladang minyak Kalimantan hingga kapitulasi tanpa syarat di Kalijati—kisah runtuhnya imperium kolonial berusia tiga abad dalam waktu kurang dari dua bulan.
+                </p>
+
+                <div class="mt-4 p-3 rounded-lg bg-[#FCF9F2] border border-[#B8860B] flex items-center justify-between gap-3 shadow-sm">
+                    <div class="text-xs sm:text-[13px] text-[#261C14]">
+                        <span class="font-cinzel font-bold text-[#8B2635]">Disusun Oleh:</span>
+                        <span class="font-semibold">KELOMPOK 1 : Aloycia, Bennedick, Gianna, Fina, William</span>
+                    </div>
+                </div>
+            </div>
+
+            <!-- Daftar Bab Narasi -->
+            <div id="chapters-container" class="px-5 sm:px-10 py-8 space-y-12"></div>
+
+            <!-- Ringkasan Kronologi & Galeri Tokoh -->
+            <section class="px-5 sm:px-10 pb-14 pt-4 space-y-10">
+                
+                <div class="bg-[#FCF9F2] border-2 border-[#B8860B] rounded-xl p-5 sm:p-7 shadow-md">
+                    <div class="flex items-center gap-2 mb-1">
+                        <span class="text-[#8B2635] text-sm">✦</span>
+                        <span class="text-xs uppercase tracking-widest font-bold text-[#8B2635]">Ikhtisar Sejarah</span>
+                    </div>
+                    <h3 class="font-display-classic text-2xl text-[#261C14] mb-4">Tabel Ringkasan Kronologi (1941–1942)</h3>
+                    
+                    <div class="overflow-x-auto">
+                        <table class="w-full text-left border-collapse text-xs sm:text-sm">
+                            <thead>
+                                <tr class="bg-[#1B365D] text-[#FCF9F2] font-cinzel">
+                                    <th class="py-2.5 px-3 rounded-tl-md">Tanggal</th>
+                                    <th class="py-2.5 px-3">Lokasi</th>
+                                    <th class="py-2.5 px-3 rounded-tr-md">Peristiwa Kunci</th>
+                                </tr>
+                            </thead>
+                            <tbody id="chronology-table-body" class="divide-y divide-[#D4C4A8]"></tbody>
+                        </table>
+                    </div>
+                </div>
+
+                <div class="bg-[#FCF9F2] border-2 border-[#D4C4A8] rounded-xl p-5 sm:p-7 shadow-md">
+                    <div class="flex items-center gap-2 mb-1">
+                        <span class="text-[#1B365D] text-sm">✦</span>
+                        <span class="text-xs uppercase tracking-widest font-bold text-[#1B365D]">Arsip Foto Potret Asli</span>
+                    </div>
+                    <h3 class="font-display-classic text-2xl text-[#261C14] mb-2">Galeri Tokoh Sejarah Asli Peristiwa 1942</h3>
+                    <p class="text-xs sm:text-sm text-[#5A4A3A] mb-5">Klik kartu foto tokoh arsip di bawah untuk langsung menuju bab peristiwa tempat tokoh tersebut berperan.</p>
+                    
+                    <div id="all-figures-gallery" class="grid grid-cols-1 sm:grid-cols-2 gap-3.5"></div>
+                </div>
+            </section>
+
+            <!-- Footer -->
+            <footer class="bg-[#EAE0CE] border-t-2 border-[#B8860B] px-6 sm:px-10 py-8 text-center">
+                <div class="inline-block px-4 py-1.5 rounded bg-[#8B2635] text-[#FCF9F2] font-cinzel text-xs font-bold tracking-wider border border-[#C59B27] mb-3">
+                    KELOMPOK 1 : Aloycia, Bennedick, Gianna, Fina, William
+                </div>
+                <p class="font-display-classic text-2xl text-[#261C14]">Akhir Sebuah Era Kolonial</p>
+                <p class="text-sm text-[#5A4A3A] max-w-md mx-auto mt-2 leading-relaxed">
+                    Penyerahan di Kalijati pada 8 Maret 1942 mengakhiri kekuasaan Hindia Belanda dan membuka babak baru pendudukan militer Jepang yang kelak memicu lahirnya Proklamasi Kemerdekaan Indonesia pada 17 Agustus 1945.
+                </p>
+                <div class="mt-5 flex flex-wrap justify-center gap-3">
+                    <button id="btn-back-top" type="button"
+                        class="px-5 py-2.5 rounded-lg bg-[#1B365D] hover:bg-[#8B2635] text-[#FCF9F2] font-cinzel text-xs sm:text-sm font-semibold border border-[#C59B27] transition-colors cursor-pointer shadow">
+                        ↑ Kembali ke Awal Cerita
+                    </button>
+                </div>
+            </footer>
+        </main>
+    </div>
+
+    <script>
+        /**
+         * GENERATOR FALLBACK POTRET KLASIK (ENGRAVING SVG)
+         */
+        function createEngravingPortraitDataUri(initials, factionColor) {
+            const svg = `
+                <svg xmlns="http://www.w3.org/2000/svg" width="160" height="190" viewBox="0 0 160 190">
+                    <defs>
+                        <pattern id="hatch" width="6" height="6" patternTransform="rotate(45 0 0)" patternUnits="userSpaceOnUse">
+                            <line x1="0" y1="0" x2="0" y2="6" stroke="#B8A78E" stroke-width="0.8" opacity="0.45"/>
+                        </pattern>
+                    </defs>
+                    <rect width="160" height="190" fill="#EAE0CE"/>
+                    <rect width="160" height="190" fill="url(#hatch)"/>
+                    <rect x="6" y="6" width="148" height="178" fill="none" stroke="${factionColor}" stroke-width="1.5" opacity="0.6"/>
+                    <path d="M24,190 C28,146 52,134 80,134 C108,134 132,146 136,190 Z" fill="${factionColor}"/>
+                    <polygon points="80,136 66,158 80,174 94,158" fill="#FCF9F2" opacity="0.9"/>
+                    <rect x="70" y="112" width="20" height="24" rx="4" fill="#D5C2A5"/>
+                    <ellipse cx="80" cy="84" rx="26" ry="33" fill="#DECDB3" stroke="#5A4A3A" stroke-width="1.2"/>
+                    <path d="M52,64 Q80,44 108,64 L112,72 Q80,66 48,72 Z" fill="${factionColor}"/>
+                    <rect x="52" y="68" width="56" height="5" fill="#C59B27"/>
+                    <rect x="44" y="150" width="72" height="22" rx="3" fill="#FCF9F2" stroke="#B8860B" stroke-width="1"/>
+                    <text x="80" y="165" font-family="Georgia, serif" font-size="13" font-weight="bold" fill="#261C14" text-anchor="middle">${initials}</text>
+                </svg>
+            `;
+            return 'data:image/svg+xml;charset=UTF-8,' + encodeURIComponent(svg.trim());
+        }
+
+        /**
+         * DATA KRONOLOGIS LENGKAP (6 BAB) + FOTO POTRET ASLI TOKOH SEJARAH
+         */
+        const storyChapters = [
+            {
+                id: 0,
+                badge: "Bab 1 • Awal 1942",
+                shortDate: "Awal 1942",
+                shortTitle: "Batavia & ABDACOM",
+                title: "Awal 1942 – Akhir Era Kolonial Belanda",
+                island: "Pulau Jawa",
+                locationName: "Batavia (Jakarta), Pusat Pemerintahan Hindia Belanda",
+                coords: [-6.1751, 106.8650],
+                zoom: 6,
+                eventSummary: "Pemerintahan Hindia Belanda terisolasi pasca jatuhnya Singapura; pembentukan komando gabungan Sekutu ABDACOM di Jawa.",
+                paragraphs: [
+                    "Memasuki awal tahun 1942, kekuasaan kolonial Kerajaan Belanda di Kepulauan Nusantara berada di ujung tanduk. Sejak Belanda di Eropa diduduki Jerman Nazi pada Mei 1940, pemerintahan Hindia Belanda di Batavia praktis terputus dari tanah airnya dan hanya bertumpu pada kekuatan militer lokal (KNIL) serta dukungan Sekutu.",
+                    "Situasi memburuk drastis setelah Jepang melancarkan serangan mendadak ke Pearl Harbor pada Desember 1941 dan bergerak cepat ke Asia Tenggara. Ketika benteng pertahanan Inggris di Singapura jatuh pada 15 Februari 1942, jalur pertahanan utama Sekutu di Asia runtuh seketika—membuat Hindia Belanda terkepung dari utara dan barat."
+                ],
+                quoteTitle: "Fakta Kunci Strategis",
+                quoteText: "Kekayaan sumber daya alam Hindia Belanda—terutama cadangan minyak bumi di Kalimantan dan Sumatera—menjadi target utama Kekaisaran Jepang untuk membiayai mesin perangnya di Pasifik.",
+                figures: [
+                    {
+                        name: "A.W.L. Tjarda van Starkenborgh Stachouwer",
+                        role: "Gubernur Jenderal Hindia Belanda Terakhir",
+                        faction: "Belanda",
+                        initials: "T.v.S.S.",
+                        wikiTitle: "Alidius_Tjarda_van_Starkenborgh_Stachouwer",
+                        imageUrl: "https://commons.wikimedia.org/wiki/Special:FilePath/Tjarda_van_Starkenborgh_Stachouwer.jpg?width=400",
+                        archiveCaption: "Arsip Tropenmuseum / Wikimedia Commons",
+                        bio: "Memimpin pemerintahan kolonial dari Batavia dan menolak meninggalkan Pulau Jawa meski Jepang terus mendesak hingga akhirnya ditawan."
+                    },
+                    {
+                        name: "Jenderal Sir Archibald Wavell",
+                        role: "Panglima Tertinggi Komando Gabungan ABDACOM",
+                        faction: "Inggris / Sekutu",
+                        initials: "A.W.",
+                        wikiTitle: "Archibald_Wavell,_1st_Earl_Wavell",
+                        imageUrl: "https://commons.wikimedia.org/wiki/Special:FilePath/Archibald_Wavell.jpg?width=400",
+                        archiveCaption: "Arsip Imperial War Museum / Wikimedia Commons",
+                        bio: "Memimpin markas besar komando gabungan Sekutu di Lembang, Jawa Barat, untuk membendung laju Jepang di Nusantara."
+                    }
+                ],
+                svgIllustration: `
+                    <svg viewBox="0 0 400 130" class="w-full h-30 rounded-lg border border-[#D4C4A8] bg-[#F3ECE0]" xmlns="http://www.w3.org/2000/svg">
+                        <defs>
+                            <pattern id="grid0" width="20" height="20" patternUnits="userSpaceOnUse">
+                                <path d="M 20 0 L 0 0 0 20" fill="none" stroke="#D8CCB8" stroke-width="0.6"/>
+                            </pattern>
+                        </defs>
+                        <rect width="400" height="130" fill="url(#grid0)"/>
+                        <path d="M35,50 Q70,70 105,90 L120,100 L95,105 Q60,83 30,60 Z" fill="#D4C4A8" stroke="#8B7A62" stroke-width="1"/>
+                        <path d="M125,106 Q185,112 245,109 L248,117 Q185,120 122,114 Z" fill="#D4C4A8" stroke="#8B7A62" stroke-width="1"/>
+                        <path d="M165,40 Q205,30 235,57 Q225,83 185,85 Q160,73 165,40 Z" fill="#D4C4A8" stroke="#8B7A62" stroke-width="1"/>
+                        <path d="M110,12 Q125,42 135,74" fill="none" stroke="#8B2635" stroke-width="2" stroke-dasharray="4 3"/>
+                        <polygon points="136,79 130,70 140,69" fill="#8B2635"/>
+                        <path d="M235,10 Q220,35 205,58" fill="none" stroke="#8B2635" stroke-width="2" stroke-dasharray="4 3"/>
+                        <polygon points="202,63 203,52 211,57" fill="#8B2635"/>
+                        <circle cx="135" cy="107" r="5" fill="#1B365D" stroke="#FCF9F2" stroke-width="1.5"/>
+                        <text x="145" y="102" font-family="Cinzel" font-size="10" fill="#1B365D" font-weight="bold">BATAVIA (Pusat Komando)</text>
+                        <text x="268" y="34" font-family="Source Serif 4" font-size="9.5" fill="#8B2635" font-style="italic">Pengepungan Kekaisaran</text>
+                        <text x="268" y="46" font-family="Source Serif 4" font-size="9.5" fill="#8B2635" font-style="italic">Jepang dari Utara</text>
+                    </svg>
+                `
+            },
+            {
+                id: 1,
+                badge: "Bab 2 • 11–12 Jan 1942",
+                shortDate: "11 Jan 1942",
+                shortTitle: "Serangan Tarakan",
+                title: "Serangan Pertama di Tarakan",
+                island: "Kalimantan",
+                locationName: "Pulau Tarakan, Kalimantan Timur",
+                coords: [3.3274, 117.5785],
+                zoom: 7,
+                eventSummary: "Pendaratan pertama tentara Jepang di wilayah Hindia Belanda untuk merebut ladang minyak Pulau Tarakan.",
+                paragraphs: [
+                    "Invasi militer Jepang ke wilayah Hindia Belanda resmi dimulai pada dini hari 11 Januari 1942 di Pulau Tarakan, sebuah pulau kecil kaya minyak di lepas pantai timur Kalimantan. Pasukan pendarat Jepang mendarat di pantai timur Tarakan dengan dukungan penuh armada laut dan udara.",
+                    "Garnisun pasukan Koninklijk Nederlands-Indisch Leger (KNIL) di bawah pimpinan Letnan Kolonel Simon de Waal berusaha melakukan perlawanan sengit sembari menjalankan taktik bumi hangus dengan menghancurkan instalasi pengeboran minyak. Namun, kalah dalam jumlah pasukan dan persenjataan udara, pertahanan Belanda di Tarakan menyerah pada 12 Januari 1942."
+                ],
+                quoteTitle: "Catatan Pertempuran Tarakan",
+                quoteText: "“Penghancuran sumur minyak oleh pasukan KNIL memicu pembalasan keras dari komando Jepang dan menjadi awal jatuhnya seluruh pangkalan strategis di pesisir Kalimantan.”",
+                figures: [
+                    {
+                        name: "Laksamana Madya Chūichi Nagumo",
+                        role: "Panglima Gugus Tugas Kapal Induk Jepang",
+                        faction: "Kekaisaran Jepang",
+                        initials: "C.N.",
+                        wikiTitle: "Chūichi_Nagumo",
+                        imageUrl: "https://commons.wikimedia.org/wiki/Special:FilePath/Chuichi_Nagumo.jpg?width=400",
+                        archiveCaption: "Arsip Angkatan Laut Jepang / Wikimedia Commons",
+                        bio: "Memimpin serangan udara kapal induk Kidō Butai di perairan Hindia Belanda untuk melumpuhkan kekuatan udara dan laut Sekutu."
+                    }
+                ],
+                svgIllustration: `
+                    <svg viewBox="0 0 400 130" class="w-full h-30 rounded-lg border border-[#D4C4A8] bg-[#F3ECE0]" xmlns="http://www.w3.org/2000/svg">
+                        <path d="M0,98 Q50,91 100,98 T200,98 T300,98 T400,98 L400,130 L0,130 Z" fill="#1B365D" fill-opacity="0.14"/>
+                        <path d="M0,108 Q50,101 100,108 T200,108 T300,108 T400,108" fill="none" stroke="#1B365D" stroke-width="1"/>
+                        <g stroke="#261C14" stroke-width="1.5" fill="none">
+                            <polygon points="85,98 95,38 105,38 115,98"/>
+                            <line x1="89" y1="78" x2="111" y2="78"/>
+                            <line x1="92" y1="58" x2="108" y2="58"/>
+                            <line x1="89" y1="78" x2="108" y2="58"/>
+                            <line x1="111" y1="78" x2="92" y2="58"/>
+                        </g>
+                        <path d="M100,34 Q92,18 108,12 Q122,8 132,19 Q145,15 148,26" fill="none" stroke="#8B2635" stroke-width="2" stroke-linecap="round"/>
+                        <path d="M235,95 L295,95 L285,105 L242,105 Z" fill="#8B2635"/>
+                        <rect x="255" y="87" width="18" height="8" fill="#261C14"/>
+                        <path d="M225,100 L190,100" stroke="#8B2635" stroke-width="1.5" stroke-dasharray="4 3"/>
+                        <polygon points="185,100 193,96 193,104" fill="#8B2635"/>
+                        <text x="210" y="42" font-family="Cinzel" font-size="11" font-weight="bold" fill="#261C14">Pendaratan 11 Jan 1942</text>
+                        <text x="210" y="57" font-family="Source Serif 4" font-size="10" fill="#5A4A3A">Ladang minyak pertama Hindia</text>
+                        <text x="210" y="70" font-family="Source Serif 4" font-size="10" fill="#5A4A3A">Belanda jatuh ke tangan Jepang.</text>
+                    </svg>
+                `
+            },
+            {
+                id: 2,
+                badge: "Bab 3 • Jan – Feb 1942",
+                shortDate: "24 Jan – 16 Feb",
+                shortTitle: "Balikpapan & Palembang",
+                title: "Jatuhnya Balikpapan & Palembang",
+                island: "Sumatera & Kalimantan",
+                locationName: "Palembang, Sumatera Selatan (dan Balikpapan)",
+                coords: [-2.9761, 104.7754],
+                zoom: 6,
+                eventSummary: "Kejatuhan pusat penyulingan Balikpapan dan serangan pasukan terjun payung Jepang di kilang minyak Palembang.",
+                paragraphs: [
+                    "Setelah menguasai Tarakan, pasukan Jepang bergerak cepat ke selatan merebut pusat penyulingan minyak raksasa di Balikpapan pada 24 Januari 1942. Kolonel C. van den Hoogenband berupaya mempertahankan kota sambil menghancurkan fasilitas kilang sebelum mundur ke pedalaman.",
+                    "Puncak operasi perebutan sumber energi terjadi pada 14–16 Februari 1942 di Palembang, Sumatera Selatan. Untuk mencegah kilang minyak Plaju dan Sungai Gerong dihancurkan Belanda, Jepang menerjunkan ratusan pasukan payung elite (Rakkasanbutai) langsung di atas kompleks kilang minyak. Jatuhnya Palembang membuat Pulau Jawa terisolasi sepenuhnya."
+                ],
+                quoteTitle: "Operasi Lintas Udara Bersejarah",
+                quoteText: "Serangan pasukan terjun payung Jepang di Palembang merupakan salah satu operasi lintas udara paling menentukan di Teater Pasifik yang melumpuhkan cadangan bahan bakar Sekutu.",
+                figures: [
+                    {
+                        name: "Jenderal Sir Archibald Wavell",
+                        role: "Panglima Tertinggi ABDACOM",
+                        faction: "Inggris / Sekutu",
+                        initials: "A.W.",
+                        wikiTitle: "Archibald_Wavell,_1st_Earl_Wavell",
+                        imageUrl: "https://commons.wikimedia.org/wiki/Special:FilePath/Archibald_Wavell.jpg?width=400",
+                        archiveCaption: "Arsip Imperial War Museum / Wikimedia Commons",
+                        bio: "Menyimpulkan bahwa pertahanan Pulau Jawa tidak lagi dapat dipertahankan setelah jatuhnya Sumatera dan membubarkan markas besar ABDACOM pada akhir Februari 1942."
+                    }
+                ],
+                svgIllustration: `
+                    <svg viewBox="0 0 400 130" class="w-full h-30 rounded-lg border border-[#D4C4A8] bg-[#F3ECE0]" xmlns="http://www.w3.org/2000/svg">
+                        <g transform="translate(75, 14)">
+                            <path d="M0,22 A22,20 0 0,1 44,22 Z" fill="#8B2635" fill-opacity="0.88" stroke="#261C14" stroke-width="1"/>
+                            <line x1="4" y1="22" x2="22" y2="42" stroke="#261C14" stroke-width="0.9"/>
+                            <line x1="22" y1="22" x2="22" y2="42" stroke="#261C14" stroke-width="0.9"/>
+                            <line x1="40" y1="22" x2="22" y2="42" stroke="#261C14" stroke-width="0.9"/>
+                            <circle cx="22" cy="45" r="3" fill="#261C14"/>
+                        </g>
+                        <g transform="translate(145, 28)">
+                            <path d="M0,18 A18,16 0 0,1 36,18 Z" fill="#1B365D" fill-opacity="0.88" stroke="#261C14" stroke-width="1"/>
+                            <line x1="4" y1="18" x2="18" y2="34" stroke="#261C14" stroke-width="0.9"/>
+                            <line x1="32" y1="18" x2="18" y2="34" stroke="#261C14" stroke-width="0.9"/>
+                            <circle cx="18" cy="37" r="2.5" fill="#261C14"/>
+                        </g>
+                        <rect x="55" y="94" width="45" height="22" rx="2" fill="#D4C4A8" stroke="#261C14" stroke-width="1.2"/>
+                        <rect x="110" y="88" width="55" height="28" rx="2" fill="#D4C4A8" stroke="#261C14" stroke-width="1.2"/>
+                        <rect x="122" y="68" width="8" height="20" fill="#5A4A3A"/>
+                        <rect x="142" y="72" width="8" height="16" fill="#5A4A3A"/>
+                        <line x1="20" y1="116" x2="380" y2="116" stroke="#261C14" stroke-width="1.2"/>
+                        <text x="198" y="46" font-family="Cinzel" font-size="11" font-weight="bold" fill="#8B2635">Kilang Plaju & Sungai Gerong</text>
+                        <text x="198" y="62" font-family="Source Serif 4" font-size="10" fill="#261C14">14–16 Februari 1942: Pasukan payung</text>
+                        <text x="198" y="75" font-family="Source Serif 4" font-size="10" fill="#261C14">Jepang merebut pusat kilang strategis</text>
+                        <text x="198" y="88" font-family="Source Serif 4" font-size="10" fill="#261C14">dan memutus jalur barat ke Jawa.</text>
+                    </svg>
+                `
+            },
+            {
+                id: 3,
+                badge: "Bab 4 • 27 Feb 1942",
+                shortDate: "27 Feb 1942",
+                shortTitle: "Pertempuran Laut Jawa",
+                title: "Pertempuran Laut Jawa",
+                island: "Laut Jawa",
+                locationName: "Perairan Laut Jawa (Utara Surabaya)",
+                coords: [-6.2000, 112.5000],
+                zoom: 7,
+                eventSummary: "Armada gabungan ABDA di bawah Laksamana Karel Doorman dihancurkan Angkatan Laut Jepang di Laut Jawa.",
+                paragraphs: [
+                    "Untuk membendung konvoi invasi besar-besaran Jepang menuju Pulau Jawa, armada laut gabungan Sekutu (ABDA) di bawah komando Laksamana Muda Karel Doorman bertolak dari Surabaya untuk mencegat armada pengawal Jepang pimpinan Laksamana Takeo Takagi di Laut Jawa.",
+                    "Dalam pertempuran laut sengit selama tujuh jam pada 27 Februari 1942, armada Sekutu kalah dalam taktik torpedo jarak jauh Jepang. Kapal penjelajah utama Belanda Hr.Ms. De Ruyter dan Hr.Ms. Java tenggelam bersama Laksamana Karel Doorman, membuka lebar gerbang laut menuju Pulau Jawa."
+                ],
+                quoteTitle: "Semboyan Terakhir Laksamana Doorman",
+                quoteText: "“Ik val aan, volgt mij!” (Saya menyerang, ikuti saya!) — Sinyal legendaris Laksamana Karel Doorman sebelum gugur bersama kapalnya di dasar Laut Jawa.",
+                figures: [
+                    {
+                        name: "Laksamana Muda Karel Doorman",
+                        role: "Komandan Armada Gabungan ABDA",
+                        faction: "Belanda / Sekutu",
+                        initials: "K.D.",
+                        wikiTitle: "Karel_Doorman",
+                        imageUrl: "https://commons.wikimedia.org/wiki/Special:FilePath/Karel_Doorman_(1941).jpg?width=400",
+                        archiveCaption: "Arsip Angkatan Laut Kerajaan Belanda (1941)",
+                        bio: "Memimpin armada gabungan kapal perang Belanda, Inggris, Australia, dan AS di Laut Jawa; gugur terhormat saat kapal Hr.Ms. De Ruyter tenggelam."
+                    }
+                ],
+                svgIllustration: `
+                    <svg viewBox="0 0 400 130" class="w-full h-30 rounded-lg border border-[#D4C4A8] bg-[#F3ECE0]" xmlns="http://www.w3.org/2000/svg">
+                        <rect x="0" y="82" width="400" height="48" fill="#1B365D" fill-opacity="0.16"/>
+                        <path d="M0,82 Q25,77 50,82 T100,82 T150,82 T200,82 T250,82 T300,82 T350,82 T400,82" fill="none" stroke="#1B365D" stroke-width="1.3"/>
+                        <path d="M55,82 L175,82 L162,70 L72,70 Z" fill="#1B365D"/>
+                        <rect x="92" y="58" width="38" height="12" fill="#261C14"/>
+                        <line x1="105" y1="58" x2="105" y2="40" stroke="#261C14" stroke-width="2"/>
+                        <line x1="122" y1="58" x2="122" y2="44" stroke="#261C14" stroke-width="1.5"/>
+                        <path d="M168,66 Q220,34 275,72" fill="none" stroke="#8B2635" stroke-width="1.6" stroke-dasharray="4 3"/>
+                        <circle cx="278" cy="74" r="6" fill="none" stroke="#8B2635" stroke-width="1.5"/>
+                        <circle cx="278" cy="74" r="2" fill="#8B2635"/>
+                        <text x="200" y="32" font-family="Cinzel" font-size="11" font-weight="bold" fill="#1B365D">Pertempuran Laut Jawa</text>
+                        <text x="200" y="47" font-family="Source Serif 4" font-size="10" fill="#5A4A3A">27 Feb 1942: Kehancuran armada ABDA</text>
+                        <text x="200" y="60" font-family="Source Serif 4" font-size="10" fill="#5A4A3A">meruntuhkan benteng laut Pulau Jawa.</text>
+                    </svg>
+                `
+            },
+            {
+                id: 4,
+                badge: "Bab 5 • 1 Maret 1942",
+                shortDate: "1 Mar 1942",
+                shortTitle: "Pendaratan di Jawa",
+                title: "Pendaratan di Pulau Jawa",
+                island: "Pulau Jawa",
+                locationName: "Teluk Banten, Eretan Wetan & Kragan",
+                coords: [-6.0186, 106.1536],
+                zoom: 7,
+                eventSummary: "Tentara ke-16 Jepang pimpinan Letjen Hitoshi Imamura mendarat serentak di tiga titik pesisir utara Jawa.",
+                paragraphs: [
+                    "Hanya berselang dua hari setelah kemenangan di Laut Jawa, Angkatan Darat ke-16 Jepang di bawah pimpinan Letnan Jenderal Hitoshi Imamura melaksanakan pendaratan amfibi serentak di tiga titik pesisir utara Pulau Jawa pada dini hari 1 Maret 1942.",
+                    "Pasukan Jepang mendarat di Teluk Banten (ujung barat Jawa), Eretan Wetan dekat Indramayu (untuk langsung memotong jalan menuju Pangkalan Udara Kalijati dan Bandung), serta Kragan di Rembang (Jawa Tengah). Dengan gerak cepat pasukan gerak jalan dan unit lapis baja ringan, Jepang mengepung Batavia dan markas besar KNIL di Bandung dalam hitungan hari."
+                ],
+                quoteTitle: "Tiga Titik Pendaratan (1 Maret 1942)",
+                quoteText: "1. Teluk Banten (Banten) • 2. Eretan Wetan (Indramayu, Jawa Barat) • 3. Kragan (Rembang, Jawa Tengah) — Gerakan menjepit yang melumpuhkan pertahanan Pulau Jawa.",
+                figures: [
+                    {
+                        name: "Letnan Jenderal Hitoshi Imamura",
+                        role: "Panglima Tentara ke-16 Kekaisaran Jepang",
+                        faction: "Kekaisaran Jepang",
+                        initials: "H.I.",
+                        wikiTitle: "Hitoshi_Imamura",
+                        imageUrl: "https://commons.wikimedia.org/wiki/Special:FilePath/Hitoshi_Imamura.jpg?width=400",
+                        archiveCaption: "Arsip Militer Jepang / Wikimedia Commons",
+                        bio: "Memimpin invasi amfibi ke Pulau Jawa pada 1 Maret 1942 dan mengarahkan pengepungan cepat menuju Batavia serta pusat pertahanan Belanda di Bandung."
+                    }
+                ],
+                svgIllustration: `
+                    <svg viewBox="0 0 400 130" class="w-full h-30 rounded-lg border border-[#D4C4A8] bg-[#F3ECE0]" xmlns="http://www.w3.org/2000/svg">
+                        <path d="M40,72 Q95,66 155,76 Q235,82 325,88 L355,102 Q245,108 145,98 Q75,92 35,86 Z" fill="#D4C4A8" stroke="#261C14" stroke-width="1.3"/>
+                        <g stroke="#8B2635" stroke-width="2" fill="#8B2635">
+                            <line x1="58" y1="32" x2="58" y2="62"/>
+                            <polygon points="58,67 54,59 62,59"/>
+                            <line x1="138" y1="32" x2="138" y2="66"/>
+                            <polygon points="138,71 134,63 142,63"/>
+                            <line x1="242" y1="38" x2="242" y2="73"/>
+                            <polygon points="242,78 238,70 246,70"/>
+                        </g>
+                        <text x="30" y="24" font-family="Source Serif 4" font-size="9" fill="#8B2635" font-weight="bold">Teluk Banten</text>
+                        <text x="110" y="24" font-family="Source Serif 4" font-size="9" fill="#8B2635" font-weight="bold">Eretan Wetan</text>
+                        <text x="222" y="30" font-family="Source Serif 4" font-size="9" fill="#8B2635" font-weight="bold">Kragan</text>
+                        <circle cx="118" cy="87" r="4" fill="#1B365D"/>
+                        <text x="126" y="90" font-family="Cinzel" font-size="9.5" font-weight="bold" fill="#1B365D">Bandung (Markas KNIL)</text>
+                    </svg>
+                `
+            },
+            {
+                id: 5,
+                badge: "Bab 6 • 8 Maret 1942",
+                shortDate: "8 Mar 1942",
+                shortTitle: "Kapitulasi Kalijati",
+                title: "Kapitulasi Kalijati",
+                island: "Pulau Jawa",
+                locationName: "Pangkalan Udara Kalijati, Subang, Jawa Barat",
+                coords: [-6.5447, 107.6744],
+                zoom: 9,
+                eventSummary: "Penandatanganan penyerahan tanpa syarat Hindia Belanda kepada Jepang di Kalijati, Subang.",
+                paragraphs: [
+                    "Terdesak dari segala penjuru dan khawatir kota Bandung yang dipadati pengungsi akan dibombardir habis-habisan oleh angkatan udara Jepang, pimpinan tertinggi Hindia Belanda akhirnya memutuskan berunding di Pangkalan Udara Kalijati, Subang, yang telah direbut pasukan Jepang.",
+                    "Pada 8 Maret 1942, Gubernur Jenderal Tjarda van Starkenborgh Stachouwer dan Panglima KNIL Letnan Jenderal Hein ter Poorten berhadapan langsung dengan Letnan Jenderal Hitoshi Imamura. Di bawah ultimatum tegas Jepang, Letjen Ter Poorten menandatangani kapitulasi tanpa syarat seluruh angkatan perang Hindia Belanda—secara resmi mengakhiri kekuasaan kolonial Belanda di Nusantara."
+                ],
+                quoteTitle: "8 Maret 1942 — Akhir Imperium Hindia Belanda",
+                quoteText: "“Dengan ditandatanganinya Kapitulasi Kalijati, seluruh wilayah dan angkatan perang Hindia Belanda diserahkan tanpa syarat kepada Kekaisaran Jepang.”",
+                figures: [
+                    {
+                        name: "Letnan Jenderal Hein ter Poorten",
+                        role: "Panglima Tertinggi KNIL (Hindia Belanda)",
+                        faction: "Belanda (KNIL)",
+                        initials: "H.t.P.",
+                        wikiTitle: "Hein_ter_Poorten",
+                        imageUrl: "https://commons.wikimedia.org/wiki/Special:FilePath/Hein_ter_Poorten.jpg?width=400",
+                        archiveCaption: "Arsip Tropenmuseum / Wikimedia Commons",
+                        bio: "Menandatangani dokumen kapitulasi tanpa syarat di Kalijati pada 8 Maret 1942 atas nama seluruh angkatan perang Hindia Belanda."
+                    },
+                    {
+                        name: "Letnan Jenderal Hitoshi Imamura",
+                        role: "Panglima Tentara ke-16 Jepang",
+                        faction: "Kekaisaran Jepang",
+                        initials: "H.I.",
+                        wikiTitle: "Hitoshi_Imamura",
+                        imageUrl: "https://commons.wikimedia.org/wiki/Special:FilePath/Hitoshi_Imamura.jpg?width=400",
+                        archiveCaption: "Arsip Militer Jepang / Wikimedia Commons",
+                        bio: "Memberikan ultimatum penyerahan mutlak dan menerima kapitulasi resmi Hindia Belanda di Pangkalan Udara Kalijati."
+                    }
+                ],
+                svgIllustration: `
+                    <svg viewBox="0 0 400 130" class="w-full h-30 rounded-lg border border-[#D4C4A8] bg-[#F3ECE0]" xmlns="http://www.w3.org/2000/svg">
+                        <rect x="60" y="14" width="125" height="102" rx="3" fill="#FCF9F2" stroke="#261C14" stroke-width="1.3"/>
+                        <line x1="78" y1="32" x2="168" y2="32" stroke="#8B2635" stroke-width="1.8"/>
+                        <line x1="78" y1="46" x2="168" y2="46" stroke="#8B7A62" stroke-width="1"/>
+                        <line x1="78" y1="58" x2="160" y2="58" stroke="#8B7A62" stroke-width="1"/>
+                        <line x1="78" y1="70" x2="165" y2="70" stroke="#8B7A62" stroke-width="1"/>
+                        <circle cx="152" cy="94" r="12" fill="#8B2635" fill-opacity="0.92" stroke="#C59B27" stroke-width="1.3"/>
+                        <circle cx="152" cy="94" r="8" fill="none" stroke="#FCF9F2" stroke-width="0.8" stroke-dasharray="2 1"/>
+                        <path d="M80,98 Q92,86 102,98 T124,94" fill="none" stroke="#1B365D" stroke-width="1.6"/>
+                        <text x="205" y="42" font-family="Cinzel" font-size="12" font-weight="bold" fill="#8B2635">Kapitulasi Kalijati</text>
+                        <text x="205" y="59" font-family="Source Serif 4" font-size="10.5" fill="#261C14" font-weight="600">8 Maret 1942 • Subang, Jawa Barat</text>
+                        <text x="205" y="76" font-family="Source Serif 4" font-size="10" fill="#5A4A3A">Letjen H. ter Poorten menyerahkan</text>
+                        <text x="205" y="89" font-family="Source Serif 4" font-size="10" fill="#5A4A3A">kekuasaan kepada Letjen H. Imamura.</text>
+                    </svg>
+                `
+            }
+        ];
+
+        // State Aplikasi
+        let currentChapterIndex = 0;
+        let map = null;
+        let baseTileLayers = {};
+        let currentBaseLayer = null;
+        let markers = [];
+        let activeInvasionLine = null;
+        let futureInvasionLine = null;
+        let alliedDefenseLine = null;
+        let isProgrammaticScroll = false;
+
+        // Batas Geografis Kepulauan Indonesia Asli (Sabang sampai Merauke)
+        const INDONESIA_BOUNDS = [
+            [-11.2, 94.8],
+            [6.2, 141.2]
+        ];
+
+        const INDONESIA_FULL_VIEW = {
+            center: [-2.4, 117.8],
+            zoom: 4
+        };
+
+        /**
+         * Inisialisasi Peta Geografis Kepulauan Indonesia Asli & Jernih
+         */
+        function initMap() {
+            map = L.map('map', {
+                center: INDONESIA_FULL_VIEW.center,
+                zoom: INDONESIA_FULL_VIEW.zoom,
+                minZoom: 4,
+                maxZoom: 16,
+                zoomControl: false,
+                attributionControl: true
+            });
+
+            L.control.zoom({
+                position: 'bottomleft'
+            }).addTo(map);
+
+            // 1. Peta Atlas Negara
+            baseTileLayers.atlas = L.tileLayer('https://server.arcgisonline.com/ArcGIS/rest/services/World_Street_Map/MapServer/tile/{z}/{y}/{x}', {
+                attribution: 'Tiles &copy; Esri &mdash; Peta Kepulauan Indonesia',
+                maxZoom: 16
+            });
+
+            // 2. Peta Fisik Asli / Relief Topografi
+            baseTileLayers.relief = L.tileLayer('https://server.arcgisonline.com/ArcGIS/rest/services/NatGeo_World_Map/MapServer/tile/{z}/{y}/{x}', {
+                attribution: 'Tiles &copy; Esri &mdash; National Geographic Relief Indonesia',
+                maxZoom: 16
+            });
+
+            // 3. Citra Satelit Asli Indonesia
+            const satelliteImagery = L.tileLayer('https://server.arcgisonline.com/ArcGIS/rest/services/World_Imagery/MapServer/tile/{z}/{y}/{x}', {
+                attribution: 'Tiles &copy; Esri &mdash; Citra Satelit Indonesia',
+                maxZoom: 16
+            });
+            const satelliteLabels = L.tileLayer('https://server.arcgisonline.com/ArcGIS/rest/services/Reference/World_Boundaries_and_Places/MapServer/tile/{z}/{y}/{x}', {
+                maxZoom: 16
+            });
+            baseTileLayers.satellite = L.layerGroup([satelliteImagery, satelliteLabels]);
+
+            currentBaseLayer = baseTileLayers.atlas;
+            currentBaseLayer.addTo(map);
+
+            map.fitBounds(INDONESIA_BOUNDS);
+
+            L.rectangle(INDONESIA_BOUNDS, {
+                color: '#B8860B',
+                weight: 1.5,
+                opacity: 0.55,
+                fillColor: '#1B365D',
+                fillOpacity: 0.03,
+                dashArray: '6, 6',
+                interactive: false
+            }).addTo(map);
+
+            const majorIslands = [
+                { name: "SUMATERA", coords: [-0.5, 101.5] },
+                { name: "KALIMANTAN", coords: [0.5, 114.2] },
+                { name: "JAWA", coords: [-7.3, 110.2] },
+                { name: "SULAWESI", coords: [-2.0, 120.8] },
+                { name: "BALI & NUSA TENGGARA", coords: [-8.6, 119.5] },
+                { name: "MALUKU", coords: [-3.2, 129.5] },
+                { name: "PAPUA", coords: [-4.2, 138.0] }
+            ];
+
+            majorIslands.forEach(isl => {
+                L.marker(isl.coords, {
+                    interactive: false,
+                    icon: L.divIcon({
+                        html: `<div class="island-map-label">${isl.name}</div>`,
+                        className: 'bg-transparent border-0',
+                        iconSize: [160, 20],
+                        iconAnchor: [80, 10]
+                    })
+                }).addTo(map);
+            });
+
+            const alliedCoords = [
+                [1.3521, 103.8198],
+                [-2.9761, 104.7754],
+                [-6.1751, 106.8650],
+                [-7.2575, 112.7521]
+            ];
+            alliedDefenseLine = L.polyline(alliedCoords, {
+                color: '#1B365D',
+                weight: 2.5,
+                opacity: 0.65,
+                dashArray: '4, 7'
+            }).addTo(map);
+
+            const allStoryCoords = storyChapters.map(ch => ch.coords);
+            futureInvasionLine = L.polyline(allStoryCoords, {
+                color: '#5A4A3A',
+                weight: 2.2,
+                opacity: 0.45,
+                dashArray: '4, 8'
+            }).addTo(map);
+
+            activeInvasionLine = L.polyline([storyChapters[0].coords], {
+                color: '#8B2635',
+                weight: 4,
+                opacity: 0.95,
+                dashArray: '8, 6'
+            }).addTo(map);
+
+            storyChapters.forEach((chapter, index) => {
+                const numLabel = (index + 1).toString();
+                const iconHtml = `
+                    <div id="marker-wrap-${index}" class="medal-marker-wrapper ${index === 0 ? 'active' : ''}">
+                        <div class="medal-pulse"></div>
+                        <div class="medal-core">${numLabel}</div>
+                    </div>
+                `;
+
+                const customIcon = L.divIcon({
+                    html: iconHtml,
+                    className: 'bg-transparent border-0',
+                    iconSize: [44, 44],
+                    iconAnchor: [22, 22],
+                    popupAnchor: [0, -22]
+                });
+
+                const marker = L.marker(chapter.coords, { icon: customIcon }).addTo(map);
+
+                marker.bindPopup(`
+                    <div class="p-1.5 max-w-[230px]">
+                        <div class="text-[10px] uppercase tracking-wider font-bold text-[#8B2635]">${chapter.badge} • ${chapter.island}</div>
+                        <div class="font-display-classic text-base font-bold text-[#261C14] mt-0.5 leading-snug">${chapter.title}</div>
+                        <div class="text-xs text-[#5A4A3A] mt-1">${chapter.locationName}</div>
+                    </div>
+                `);
+
+                marker.on('click', () => {
+                    navigateToChapter(index, true);
+                });
+
+                markers.push(marker);
+            });
+        }
+
+        /**
+         * Mengganti Tampilan Peta Indonesia Asli
+         */
+        function switchMapStyle(styleKey) {
+            if (!map || !baseTileLayers[styleKey]) return;
+            if (currentBaseLayer) {
+                map.removeLayer(currentBaseLayer);
+            }
+            currentBaseLayer = baseTileLayers[styleKey];
+            currentBaseLayer.addTo(map);
+
+            document.querySelectorAll('.map-style-btn').forEach(btn => {
+                const isSelected = btn.dataset.mapStyle === styleKey;
+                if (isSelected) {
+                    btn.className = 'map-style-btn active px-2.5 py-1 rounded text-[11px] font-cinzel font-bold bg-[#8B2635] text-[#FCF9F2] transition-colors cursor-pointer';
+                } else {
+                    btn.className = 'map-style-btn px-2.5 py-1 rounded text-[11px] font-cinzel font-bold text-[#261C14] hover:bg-[#EAE0CE] transition-colors cursor-pointer';
+                }
+            });
+        }
+
+        /**
+         * Mengambil URL Foto Potret Asli Tokoh Sejarah dari Wikipedia PageImages API
+         */
+        async function hydrateHistoricalPortraitsFromWikipedia() {
+            const uniqueTitles = new Set();
+            storyChapters.forEach(ch => {
+                (ch.figures || []).forEach(fig => {
+                    if (fig.wikiTitle) uniqueTitles.add(fig.wikiTitle);
+                });
+            });
+
+            if (uniqueTitles.size === 0) return;
+
+            try {
+                const titlesParam = Array.from(uniqueTitles).join('|');
+                const apiUrl = `https://en.wikipedia.org/w/api.php?action=query&titles=${encodeURIComponent(titlesParam)}&prop=pageimages&format=json&pithumbsize=420&origin=*`;
+                const response = await fetch(apiUrl);
+                if (!response.ok) return;
+
+                const data = await response.json();
+                const pages = data?.query?.pages || {};
+                const normalized = data?.query?.normalized || [];
+
+                const titleMap = {};
+                normalized.forEach(n => {
+                    titleMap[n.from] = n.to;
+                });
+
+                const resolvedThumbByTitle = {};
+                Object.values(pages).forEach(page => {
+                    if (page.title && page.thumbnail?.source) {
+                        resolvedThumbByTitle[page.title] = page.thumbnail.source;
+                    }
+                });
+
+                uniqueTitles.forEach(rawTitle => {
+                    const normalizedTitle = titleMap[rawTitle] || rawTitle.replace(/_/g, ' ');
+                    const thumbUrl = resolvedThumbByTitle[normalizedTitle];
+                    if (thumbUrl) {
+                        document.querySelectorAll(`img[data-wiki-title="${rawTitle}"]`).forEach(imgEl => {
+                            imgEl.src = thumbUrl;
+                        });
+                    }
+                });
+            } catch (err) {
+                console.warn('Menggunakan URL Wikimedia Commons langsung untuk foto arsip tokoh.', err);
+            }
+        }
+
+        /**
+         * Render Kartu Tokoh Penting
+         */
+        function renderFiguresHtml(figures) {
+            if (!figures || figures.length === 0) return '';
+
+            const cardsHtml = figures.map(fig => {
+                const isJapan = fig.faction.toLowerCase().includes('jepang');
+                const factionColor = isJapan ? '#8B2635' : '#1B365D';
+                const badgeBg = isJapan ? 'bg-[#8B2635]/10 text-[#8B2635] border-[#8B2635]/30' : 'bg-[#1B365D]/10 text-[#1B365D] border-[#1B365D]/30';
+                const fallbackUri = createEngravingPortraitDataUri(fig.initials, factionColor);
+
+                return `
+                    <div class="figure-card flex items-start gap-4 p-4 rounded-lg bg-[#F6F1E7] border border-[#D4C4A8] hover:border-[#B8860B] transition-all shadow-sm">
+                        <div class="portrait-frame w-20 h-28 sm:w-24 sm:h-32 rounded overflow-hidden flex-shrink-0">
+                            <img src="${fig.imageUrl}" 
+                                 data-wiki-title="${fig.wikiTitle || ''}"
+                                 alt="Foto Arsip Asli ${fig.name}" 
+                                 loading="lazy"
+                                 onerror="this.onerror=null; this.src='${fallbackUri}';"
+                                 class="portrait-img w-full h-full object-cover object-top" />
+                        </div>
+                        <div class="min-w-0 flex-1">
+                            <span class="inline-block text-[10px] font-bold uppercase tracking-wider px-2 py-0.5 rounded border ${badgeBg} mb-1">
+                                ${fig.faction}
+                            </span>
+                            <h4 class="font-cinzel text-xs sm:text-sm font-bold text-[#261C14] leading-snug">
+                                ${fig.name}
+                            </h4>
+                            <p class="text-[11px] font-semibold text-[#8B2635] mt-0.5">
+                                ${fig.role}
+                            </p>
+                            <p class="text-xs text-[#261C14]/90 mt-1.5 leading-relaxed">
+                                ${fig.bio}
+                            </p>
+                            <p class="text-[10px] italic text-[#5A4A3A] mt-1.5">
+                                📷 ${fig.archiveCaption || 'Arsip Foto Sejarah'}
+                            </p>
+                        </div>
+                    </div>
+                `;
+            }).join('');
+
+            return `
+                <div class="mt-6 pt-5 border-t border-[#D4C4A8]">
+                    <div class="flex items-center gap-2 mb-3">
+                        <span class="inline-flex items-center justify-center w-5 h-5 rounded-full bg-[#B8860B] text-[#FCF9F2] text-xs font-bold">♛</span>
+                        <h3 class="font-cinzel text-xs sm:text-sm font-bold uppercase tracking-wider text-[#261C14]">
+                            Tokoh Penting dalam Peristiwa Ini (Foto Arsip Asli)
+                        </h3>
+                    </div>
+                    <div class="grid grid-cols-1 gap-3.5">
+                        ${cardsHtml}
+                    </div>
+                </div>
+            `;
+        }
+
+        /**
+         * Render UI Narasi
+         */
+        function renderStoryUI() {
+            const container = document.getElementById('chapters-container');
+            const timelineContainer = document.getElementById('chapter-timeline-nav');
+            const tableBody = document.getElementById('chronology-table-body');
+            const galleryContainer = document.getElementById('all-figures-gallery');
+
+            container.innerHTML = '';
+            timelineContainer.innerHTML = '';
+            tableBody.innerHTML = '';
+            galleryContainer.innerHTML = '';
+
+            const uniqueFiguresMap = new Map();
+
+            storyChapters.forEach((chapter, index) => {
+                const timelineBtn = document.createElement('button');
+                timelineBtn.type = 'button';
+                timelineBtn.id = `timeline-btn-${index}`;
+                timelineBtn.title = `${chapter.badge}: ${chapter.title}`;
+                timelineBtn.className = `group flex flex-col items-center text-left transition-all cursor-pointer`;
+                timelineBtn.innerHTML = `
+                    <div id="timeline-bar-${index}" class="w-full h-2 rounded-full transition-all duration-300 ${index === 0 ? 'bg-[#8B2635]' : 'bg-[#D4C4A8] group-hover:bg-[#B8860B]'}"></div>
+                    <span class="hidden md:block text-[9.5px] font-semibold text-[#5A4A3A] group-hover:text-[#8B2635] mt-1 truncate max-w-full">${chapter.shortDate}</span>
+                `;
+                timelineBtn.addEventListener('click', () => navigateToChapter(index, true));
+                timelineContainer.appendChild(timelineBtn);
+
+                const article = document.createElement('article');
+                article.id = `chapter-card-${index}`;
+                article.dataset.chapterIndex = index;
+                article.className = `story-card rounded-xl p-6 sm:p-8 scroll-mt-36 ${index === 0 ? 'is-active' : ''}`;
+
+                const paragraphsHtml = chapter.paragraphs
+                    .map(p => `<p class="text-[#261C14] text-[15.5px] sm:text-base leading-[1.8] mb-4">${p}</p>`)
+                    .join('');
+
+                article.innerHTML = `
+                    <div class="flex flex-wrap items-center justify-between gap-2 mb-3">
+                        <span class="inline-flex items-center gap-2 px-3 py-1 rounded-md bg-gradient-to-r from-[#8B2635] to-[#721D29] text-[#FCF9F2] text-xs font-cinzel font-bold tracking-wide uppercase border border-[#C59B27] shadow-sm">
+                            <span>${chapter.badge}</span>
+                        </span>
+                        <span class="text-xs font-semibold text-[#1B365D] bg-[#1B365D]/10 px-2.5 py-1 rounded-md border border-[#1B365D]/25">
+                            📍 ${chapter.island}
+                        </span>
+                    </div>
+
+                    <h2 class="font-display-classic text-2xl sm:text-3xl text-[#261C14] leading-snug mb-1.5">
+                        ${chapter.title}
+                    </h2>
+                    <p class="text-xs sm:text-sm font-medium text-[#5A4A3A] mb-4">
+                        Lokasi: ${chapter.locationName}
+                    </p>
+
+                    <div class="my-4">
+                        ${chapter.svgIllustration}
+                    </div>
+
+                    <div class="mt-4">
+                        ${paragraphsHtml}
+                    </div>
+
+                    <aside class="mt-5 p-4 sm:p-5 rounded-lg bg-[#F6F1E7] border-l-4 border-[#8B2635] border-y border-r border-[#D4C4A8]">
+                        <div class="text-xs uppercase tracking-widest font-cinzel font-bold text-[#8B2635] mb-1">
+                            ✦ ${chapter.quoteTitle}
+                        </div>
+                        <p class="text-sm sm:text-[15px] italic text-[#261C14] leading-relaxed">
+                            ${chapter.quoteText}
+                        </p>
+                    </aside>
+
+                    ${renderFiguresHtml(chapter.figures)}
+                `;
+
+                article.addEventListener('click', () => {
+                    if (currentChapterIndex !== index) {
+                        navigateToChapter(index, false);
+                    }
+                });
+
+                container.appendChild(article);
+
+                const tr = document.createElement('tr');
+                tr.className = 'hover:bg-[#F6F1E7] transition-colors cursor-pointer';
+                tr.innerHTML = `
+                    <td class="py-3 px-3 font-cinzel font-bold text-[#8B2635] whitespace-nowrap align-top">${chapter.shortDate}</td>
+                    <td class="py-3 px-3 font-semibold text-[#1B365D] align-top">${chapter.island}</td>
+                    <td class="py-3 px-3 text-[#261C14] align-top">${chapter.eventSummary}</td>
+                `;
+                tr.addEventListener('click', () => navigateToChapter(index, true));
+                tableBody.appendChild(tr);
+
+                if (chapter.figures) {
+                    chapter.figures.forEach(fig => {
+                        if (!uniqueFiguresMap.has(fig.name)) {
+                            uniqueFiguresMap.set(fig.name, { ...fig, chapterIndex: index, chapterBadge: chapter.badge });
+                        }
+                    });
+                }
+            });
+
+            uniqueFiguresMap.forEach(fig => {
+                const isJapan = fig.faction.toLowerCase().includes('jepang');
+                const factionColor = isJapan ? '#8B2635' : '#1B365D';
+                const fallbackUri = createEngravingPortraitDataUri(fig.initials, factionColor);
+
+                const card = document.createElement('button');
+                card.type = 'button';
+                card.className = 'figure-card text-left flex items-start gap-3.5 p-3.5 rounded-lg bg-[#F6F1E7] border border-[#D4C4A8] hover:border-[#8B2635] transition-all cursor-pointer shadow-sm';
+                card.innerHTML = `
+                    <div class="portrait-frame w-16 h-22 sm:w-[72px] sm:h-24 rounded overflow-hidden flex-shrink-0">
+                        <img src="${fig.imageUrl}" 
+                             data-wiki-title="${fig.wikiTitle || ''}"
+                             alt="Foto Arsip ${fig.name}" 
+                             loading="lazy"
+                             onerror="this.onerror=null; this.src='${fallbackUri}';"
+                             class="portrait-img w-full h-full object-cover object-top" />
+                    </div>
+                    <div class="min-w-0 flex-1">
+                        <span class="text-[10px] font-bold uppercase tracking-wider text-[#8B2635] block">${fig.chapterBadge}</span>
+                        <h4 class="font-cinzel text-xs font-bold text-[#261C14] leading-snug mt-0.5">${fig.name}</h4>
+                        <p class="text-[11px] font-medium text-[#1B365D] mt-0.5">${fig.role}</p>
+                        <p class="text-[10px] italic text-[#5A4A3A] mt-1">📷 ${fig.archiveCaption || 'Arsip Foto Sejarah'}</p>
+                    </div>
+                `;
+                card.addEventListener('click', () => navigateToChapter(fig.chapterIndex, true));
+                galleryContainer.appendChild(card);
+            });
+        }
+
+        /**
+         * Update State Bab Aktif
+         */
+        function updateActiveChapterState(index, flyToChapter = true) {
+            if (index < 0 || index >= storyChapters.length) return;
+            currentChapterIndex = index;
+            const chapter = storyChapters[index];
+
+            if (flyToChapter && map) {
+                map.flyTo(chapter.coords, chapter.zoom, {
+                    duration: 1.45,
+                    easeLinearity: 0.25
+                });
+            }
+
+            const pathCoords = storyChapters.slice(0, index + 1).map(ch => ch.coords);
+            if (activeInvasionLine) {
+                activeInvasionLine.setLatLngs(pathCoords);
+            }
+
+            storyChapters.forEach((_, idx) => {
+                const markerWrap = document.getElementById(`marker-wrap-${idx}`);
+                if (markerWrap) {
+                    markerWrap.classList.toggle('active', idx === index);
+                }
+
+                const cardEl = document.getElementById(`chapter-card-${idx}`);
+                if (cardEl) {
+                    cardEl.classList.toggle('is-active', idx === index);
+                }
+
+                const barEl = document.getElementById(`timeline-bar-${idx}`);
+                if (barEl) {
+                    if (idx <= index) {
+                        barEl.className = 'w-full h-2 rounded-full transition-all duration-300 bg-[#8B2635]';
+                    } else {
+                        barEl.className = 'w-full h-2 rounded-full transition-all duration-300 bg-[#D4C4A8] group-hover:bg-[#B8860B]';
+                    }
+                }
+            });
+
+            document.getElementById('map-badge-chapter').textContent = chapter.badge;
+            document.getElementById('map-badge-island').textContent = chapter.island;
+            document.getElementById('map-badge-location').textContent = chapter.locationName;
+            const latDir = chapter.coords[0] < 0 ? 'LS' : 'LU';
+            const lngDir = chapter.coords[1] >= 0 ? 'BT' : 'BB';
+            document.getElementById('map-badge-coords').textContent = 
+                `${Math.abs(chapter.coords[0]).toFixed(4)}° ${latDir}, ${Math.abs(chapter.coords[1]).toFixed(4)}° ${lngDir}`;
+
+            document.getElementById('nav-progress-label').textContent = `Bab ${index + 1} dari ${storyChapters.length}`;
+            document.getElementById('nav-chapter-short').textContent = chapter.shortTitle;
+
+            document.getElementById('btn-prev').disabled = (index === 0);
+            document.getElementById('btn-next').disabled = (index === storyChapters.length - 1);
+        }
+
+        /**
+         * Navigasi ke Bab
+         */
+        function navigateToChapter(index, shouldScroll = true) {
+            if (index < 0 || index >= storyChapters.length) return;
+            
+            updateActiveChapterState(index, true);
+
+            if (shouldScroll) {
+                const targetCard = document.getElementById(`chapter-card-${index}`);
+                if (targetCard) {
+                    isProgrammaticScroll = true;
+                    targetCard.scrollIntoView({ behavior: 'smooth', block: 'center' });
+                    
+                    if (markers[index]) {
+                        markers[index].openPopup();
+                    }
+
+                    setTimeout(() => {
+                        isProgrammaticScroll = false;
+                    }, 950);
+                }
+            }
+        }
+
+        /**
+         * Setup IntersectionObserver
+         */
+        function setupScrollObserver() {
+            const options = {
+                root: null,
+                rootMargin: '-30% 0px -42% 0px',
+                threshold: 0.15
+            };
+
+            const observer = new IntersectionObserver((entries) => {
+                if (isProgrammaticScroll) return;
+
+                entries.forEach(entry => {
+                    if (entry.isIntersecting) {
+                        const idx = parseInt(entry.target.dataset.chapterIndex, 10);
+                        if (!isNaN(idx) && idx !== currentChapterIndex) {
+                            updateActiveChapterState(idx, true);
+                        }
+                    }
+                });
+            }, options);
+
+            storyChapters.forEach((_, index) => {
+                const card = document.getElementById(`chapter-card-${index}`);
+                if (card) observer.observe(card);
+            });
+        }
+
+        /**
+         * Binding Kontrol
+         */
+        function bindControls() {
+            const heroCover = document.getElementById('hero-cover');
+            const btnStart = document.getElementById('btn-start-story');
+            const btnOpenCover = document.getElementById('btn-open-cover');
+
+            btnStart.addEventListener('click', () => {
+                heroCover.classList.add('opacity-0', 'pointer-events-none');
+                setTimeout(() => {
+                    heroCover.style.display = 'none';
+                    if (map) {
+                        map.invalidateSize();
+                        map.fitBounds(INDONESIA_BOUNDS);
+                        setTimeout(() => {
+                            updateActiveChapterState(0, true);
+                        }, 750);
+                    }
+                }, 500);
+            });
+
+            btnOpenCover.addEventListener('click', () => {
+                heroCover.style.display = 'flex';
+                requestAnimationFrame(() => {
+                    heroCover.classList.remove('opacity-0', 'pointer-events-none');
+                });
+            });
+
+            document.querySelectorAll('.map-style-btn').forEach(btn => {
+                btn.addEventListener('click', () => {
+                    switchMapStyle(btn.dataset.mapStyle);
+                });
+            });
+
+            document.getElementById('btn-prev').addEventListener('click', () => {
+                if (currentChapterIndex > 0) {
+                    navigateToChapter(currentChapterIndex - 1, true);
+                }
+            });
+
+            document.getElementById('btn-next').addEventListener('click', () => {
+                if (currentChapterIndex < storyChapters.length - 1) {
+                    navigateToChapter(currentChapterIndex + 1, true);
+                }
+            });
+
+            document.getElementById('btn-reset-map').addEventListener('click', () => {
+                map.closePopup();
+                map.flyToBounds(INDONESIA_BOUNDS, {
+                    duration: 1.4,
+                    padding: [20, 20]
+                });
+                document.getElementById('map-badge-chapter').textContent = "Peta Indonesia";
+                document.getElementById('map-badge-island').textContent = "Sabang – Merauke";
+                document.getElementById('map-badge-location').textContent = "Kepulauan Indonesia Asli (Hindia Belanda 1942)";
+                document.getElementById('map-badge-coords').textContent = "2.4000° LS, 117.8000° BT";
+            });
+
+            document.getElementById('btn-back-top').addEventListener('click', () => {
+                navigateToChapter(0, true);
+            });
+
+            window.addEventListener('resize', () => {
+                if (map) {
+                    map.invalidateSize();
+                }
+            });
+        }
+
+        window.addEventListener('DOMContentLoaded', () => {
+            renderStoryUI();
+            initMap();
+            setupScrollObserver();
+            bindControls();
+            updateActiveChapterState(0, false);
+            hydrateHistoricalPortraitsFromWikipedia();
+        });
+    </script>
+</body>
+</html>
+
